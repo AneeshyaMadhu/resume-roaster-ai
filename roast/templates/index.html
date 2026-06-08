@@ -1,15 +1,666 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Resume Roaster AI</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Burn My Resume — Brutally Honest. Remarkably You.</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --gold-0:#fff8e8;
+  --gold-1:#ffe98a;
+  --gold-2:#f5c842;
+  --gold-3:#d4952a;
+  --gold-4:#9a6010;
+  --gold-5:#5a3800;
+  --ember:#e85d04;
+  --smoke:#ede0c4;
+  --dark:#040200;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark)}
+body{font-family:'Cormorant Garamond',serif;cursor:none}
+
+/* ── CURSOR ── */
+#cur{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--gold-2);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:transform .1s;box-shadow:0 0 12px 4px rgba(245,200,66,.6)}
+#cur-ring{position:fixed;width:38px;height:38px;border-radius:50%;border:1px solid rgba(212,149,42,.5);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .15s ease,top .15s ease}
+body:has(.btn-upload:hover) #cur{transform:translate(-50%,-50%) scale(2.5)}
+
+/* ── BG ── */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background-size:cover;background-position:center;
+  transition:transform .08s ease-out;
+  will-change:transform;
+}
+#bg-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(105deg, rgba(4,2,0,0) 0%, rgba(4,2,0,0.08) 40%, rgba(4,2,0,0.55) 65%, rgba(4,2,0,0.92) 100%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(0,0,0,.7) 100%);
+}
+
+/* vignette burn edge */
+#vignette{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  box-shadow:inset 0 0 180px rgba(0,0,0,.8), inset 0 0 60px rgba(0,0,0,.5);
+}
+
+/* ── EMBER CANVAS ── */
+#ec{position:fixed;inset:0;z-index:3;pointer-events:none}
+
+/* ── HERO LAYOUT ── */
+.hero{
+  position:relative;z-index:10;
+  width:100vw;height:100vh;
+  display:grid;
+  grid-template-columns: 50% 50%;
+  align-items:center;
+}
+.hero{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* left empty — image fills it */
+.hero-left{height:100%}
+
+/* right panel */
+.hero-right{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 2rem;
+}
+.eyebrow,
+.t-my-row,
+.stats{
+  justify-content:center;
+}
+
+.gold-divider{
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.stat{
+  align-items:center;
+}
+
+/* ── EYEBROW ── */
+.eyebrow{
+  display:flex;align-items:center;gap:.8rem;
+  margin-bottom:1.2rem;
+  opacity:0;animation:slideDown .7s .1s cubic-bezier(.22,1,.36,1) forwards;
+}
+.eyebrow-line{width:36px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-3))}
+.eyebrow-text{
+  font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.35em;
+  color:var(--gold-3);text-transform:uppercase;
+}
+
+/* ── MAIN TITLE ── */
+.title-stack{line-height:.88;margin-bottom:1.4rem}
+
+.t-burn{
+  display:block;
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(4rem,9.5vw,9rem);
+  font-weight:900;
+  background:linear-gradient(170deg,var(--gold-0) 0%,var(--gold-1) 15%,var(--gold-2) 35%,var(--gold-3) 60%,var(--gold-4) 80%,var(--gold-5) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 30px rgba(188, 115, 6, 0.9)) drop-shadow(0 0 60px rgba(180,60,0,.5));
+  opacity:0;animation:slideDown .9s .2s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+.t-my-row{
+  display:flex;align-items:center;gap:1rem;
+  margin:.4rem 0;
+  opacity:0;animation:slideDown .8s .3s cubic-bezier(.22,1,.36,1) forwards;
+}
+.t-rule{flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-3),var(--gold-2),var(--gold-3),transparent);opacity:.7}
+.t-my{
+  font-family:'Cinzel',serif;font-size:clamp(1rem,2.2vw,1.9rem);
+  font-weight:400;letter-spacing:.45em;
+  background:linear-gradient(180deg,var(--gold-1) 0%,var(--gold-4) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 10px rgba(200,120,0,.6));
+}
+
+.t-resume{
+  display:block;
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(3.2rem,8.5vw,8.2rem);
+  font-weight:900;
+  background:linear-gradient(170deg,var(--gold-0) 0%,var(--gold-1) 15%,var(--gold-2) 35%,var(--gold-3) 60%,var(--gold-4) 80%,var(--gold-5) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 35px rgba(210,130,10,1)) drop-shadow(0 0 70px rgba(180,60,0,.6));
+  opacity:0;animation:slideDown .9s .4s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* ── TAGLINE ── */
+.tagline{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(.75rem,1.2vw,1rem);
+  font-weight:300;font-style:italic;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--smoke);opacity:0;
+  margin-bottom:2rem;
+  animation:fadeUp .8s .65s ease forwards;
+}
+
+/* ── DIVIDER ── */
+.gold-divider{
+  width:100%;max-width:400px;
+  height:1px;
+  position:relative;margin-bottom:2.2rem;
+  opacity:0;animation:fadeUp .7s .75s ease forwards;
+}
+.gold-divider::before{
+  content:'';display:block;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-4) 20%,var(--gold-2) 50%,var(--gold-4) 80%,transparent);
+  opacity:.7;
+}
+.gold-divider::after{
+  content:'✦';
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  color:var(--gold-3);font-size:8px;opacity:.9;
+  text-shadow:0 0 8px rgba(200,130,10,.8);
+}
+
+/* ── STATS ROW ── */
+.stats{
+  display:flex;gap:2rem;margin-bottom:2.4rem;
+  opacity:0;animation:fadeUp .7s .85s ease forwards;
+}
+.stat{display:flex;flex-direction:column;gap:.2rem;align-items:flex-start}
+.stat-num{
+  font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;
+  color:var(--gold-2);text-shadow:0 0 12px rgba(200,140,0,.5);
+}
+.stat-label{
+  font-family:'Cormorant Garamond',serif;font-size:.7rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--smoke);opacity:.6;
+}
+.stat-sep{width:1px;height:36px;background:linear-gradient(180deg,transparent,var(--gold-4),transparent);opacity:.5;align-self:center}
+
+/* ── UPLOAD BUTTON ── */
+.btn-wrap{opacity:0;animation:fadeUp .8s .95s ease forwards}
+
+.btn-upload{
+  position:relative;display:inline-flex;align-items:center;gap:.9em;
+  padding:1.1rem 2.8rem;
+  background:linear-gradient(170deg,#f7d060 0%,var(--gold-3) 45%,#a06010 100%);
+  border:0;border-radius:3px;
+  font-family:'Cinzel',serif;font-size:clamp(.72rem,1.2vw,.95rem);
+  font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+  color:#1a0900;cursor:none;overflow:hidden;
+  box-shadow:
+    0 0 24px rgba(212,149,42,.6),
+    0 0 60px rgba(180,80,0,.35),
+    0 8px 32px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,235,110,.5),
+    inset 0 -1px 0 rgba(0,0,0,.2);
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+/* animated border via pseudo */
+.btn-upload::before{
+  content:'';position:absolute;inset:-2px;
+  border-radius:5px;z-index:-1;
+  background:linear-gradient(90deg,var(--gold-1),var(--ember),var(--gold-2),var(--ember),var(--gold-1));
+  background-size:300% 100%;
+  animation:borderFlow 3s linear infinite;
+}
+.btn-upload::after{
+  content:'';position:absolute;top:0;left:-120%;
+  width:70%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  transition:left .6s ease;
+}
+.btn-upload:hover::after{left:140%}
+.btn-upload:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:
+    0 0 40px rgba(245,200,66,.9),
+    0 0 80px rgba(230,100,0,.6),
+    0 12px 40px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,235,110,.5);
+}
+.btn-upload:active{transform:translateY(-1px) scale(1)}
+
+.btn-icon{width:1.1em;height:1.1em;flex-shrink:0}
+
+@keyframes borderFlow{
+  0%{background-position:0% 50%}
+  100%{background-position:300% 50%}
+}
+
+/* ── FIRE BADGE (bottom right) ── */
+.fire-badge{
+  position:fixed;bottom:2rem;right:2rem;z-index:20;
+  display:flex;flex-direction:column;align-items:center;gap:.3rem;
+  opacity:0;animation:fadeUp .7s 1.2s ease forwards;
+}
+.badge-ring{
+  width:64px;height:64px;border-radius:50%;
+  border:1px solid rgba(200,146,42,.4);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  box-shadow:0 0 20px rgba(200,80,0,.3),inset 0 0 20px rgba(0,0,0,.4);
+  background:rgba(10,4,0,.6);
+  backdrop-filter:blur(6px);
+  animation:ringPulse 3s ease-in-out infinite;
+}
+.badge-icon{font-size:1.6rem;filter:drop-shadow(0 0 8px rgba(230,100,0,.8))}
+.badge-text{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.25em;color:var(--gold-3);text-transform:uppercase}
+
+@keyframes ringPulse{
+  0%,100%{box-shadow:0 0 20px rgba(200,80,0,.3),inset 0 0 20px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 35px rgba(230,100,0,.6),inset 0 0 20px rgba(0,0,0,.4)}
+}
+
+/* ── SCROLL HINT ── */
+.scroll-hint{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);
+  z-index:20;display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  opacity:0;animation:fadeUp .7s 1.4s ease forwards;
+}
+.scroll-text{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;color:rgba(200,150,60,.5);text-transform:uppercase}
+.scroll-line{width:1px;height:36px;background:linear-gradient(180deg,rgba(200,140,40,.5),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:.9}}
+
+/* ── ANIMATIONS ── */
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-24px) skewY(-.5deg)}
+  to{opacity:1;transform:translateY(0) skewY(0)}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── HIDDEN INPUT ── */
+#resumeInput{display:none}
+
+/* ─────────── MODAL ─────────── */
+.modal-bg{
+  display:none;position:fixed;inset:0;z-index:200;
+  align-items:center;justify-content:center;padding:1.5rem;
+  background:rgba(4,2,0,.88);
+  backdrop-filter:blur(18px) saturate(1.2);
+}
+.modal-bg.open{display:flex;animation:fadeIn .35s ease}
+
+.modal{
+  background:linear-gradient(145deg,#1c0e04 0%,#0c0602 80%,#0a0401 100%);
+  border:1px solid rgba(200,146,42,.25);
+  border-radius:4px;
+  max-width:740px;width:100%;
+  max-height:88vh;overflow-y:auto;
+  padding:clamp(2rem,4vw,3.5rem);
+  position:relative;
+  box-shadow:
+    0 0 120px rgba(180,80,0,.25),
+    0 0 40px rgba(200,146,42,.08),
+    inset 0 1px 0 rgba(200,146,42,.12),
+    inset 0 -1px 0 rgba(0,0,0,.5);
+}
+/* scanlines texture */
+.modal::before{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:4px;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+  opacity:.4;
+}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
+.modal::-webkit-scrollbar-thumb{background:var(--gold-4);border-radius:2px}
+
+.modal-close{
+  position:absolute;top:1.2rem;right:1.4rem;
+  background:none;border:none;color:var(--gold-3);
+  font-size:1.3rem;cursor:none;opacity:.5;
+  transition:opacity .2s,transform .2s;line-height:1;
+}
+.modal-close:hover{opacity:1;transform:rotate(90deg)}
+
+.modal-title{
+  font-family:'Cinzel Decorative',cursive;font-size:clamp(1.2rem,3vw,1.8rem);
+  background:linear-gradient(180deg,var(--gold-1) 0%,var(--gold-3) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 16px rgba(240,168,48,.4));
+  margin-bottom:.4rem;
+}
+.modal-sub{
+  font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--gold-4);margin-bottom:1.8rem;
+}
+.modal-divider{
+  width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-4),rgba(220,96,16,.6),transparent);
+  margin-bottom:1.8rem;opacity:.8;
+}
+
+/* section blocks */
+.modal-body{font-size:clamp(.88rem,1.5vw,1rem);line-height:1.9;color:#e0c898;white-space:pre-wrap}
+.modal-body strong{
+  display:block;margin-top:1.4rem;margin-bottom:.4rem;
+  font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.2em;
+  color:var(--gold-2);text-transform:uppercase;
+}
+.modal-body strong:first-child{margin-top:0}
+
+/* ── LOADING ── */
+.loading{display:flex;flex-direction:column;align-items:center;gap:1.5rem;padding:3rem 0}
+.fire-ring{width:80px;height:80px;position:relative}
+.fire-ring svg{width:100%;height:100%;animation:spin 3s linear infinite}
+.fire-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:2rem;animation:flicker .55s ease-in-out infinite alternate;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flicker{0%{transform:translate(-50%,-50%) scale(1);filter:brightness(1)}100%{transform:translate(-50%,-50%) scale(1.18);filter:brightness(1.5)}}
+.loading-text{
+  font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.25em;
+  color:var(--gold-3);text-transform:uppercase;
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.loading-dots::after{content:'';animation:dots 1.5s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .hero{grid-template-columns:1fr;align-items:flex-end}
+  .hero-left{display:none}
+  .hero-right{
+    align-items:center;text-align:center;
+    padding:0 5vw 10vh;
+  }
+  .t-my-row,.stats{justify-content:center}
+  .gold-divider{margin-left:auto;margin-right:auto}
+  .eyebrow{justify-content:center}
+  #bg{background-position:30% center}
+  .scroll-hint{display:none}
+}
+</style>
 </head>
 <body>
 
-    <h1>🔥 Resume Roaster AI</h1>
+<div id="cur"></div>
+<div id="cur-ring"></div>
 
-    <h3>Upload your resume and prepare for emotional damage.</h3>
+<!-- Background -->
+<div id="bg"></div>
+<div id="bg-overlay"></div>
+<div id="vignette"></div>
 
-    <button>Destroy My Confidence</button>
+<!-- Ember canvas -->
+<canvas id="ec"></canvas>
 
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left"></div>
+
+  <div class="hero-right">
+
+    <div class="eyebrow">
+      <div class="eyebrow-line"></div>
+      <span class="eyebrow-text">AI-Powered Resume Critique</span>
+      <div class="eyebrow-line"></div>
+    </div>
+
+    <div class="title-stack">
+      <span class="t-burn">BURN</span>
+      <div class="t-my-row">
+        <div class="t-rule"></div>
+        <span class="t-my">MY</span>
+        <div class="t-rule"></div>
+      </div>
+      <span class="t-resume">RESUME</span>
+    </div>
+
+    <p class="tagline">Brutally Honest &nbsp;·&nbsp; Remarkably You.</p>
+
+    <div class="gold-divider"></div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">Unfiltered</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <span class="stat-num">30s</span>
+        <span class="stat-label">Analysis</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <span class="stat-num">AI</span>
+        <span class="stat-label">Powered</span>
+      </div>
+    </div>
+
+    <div class="btn-wrap">
+      <label class="btn-upload" for="resumeInput">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload Resume
+      </label>
+      <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt"/>
+    </div>
+
+  </div>
+</section>
+
+<!-- Fire badge -->
+<div class="fire-badge">
+  <div class="badge-ring"><span class="badge-icon">📄🔥</span></div>
+  <span class="badge-text">Ignite</span>
+</div>
+
+<!-- Scroll hint -->
+<div class="scroll-hint">
+  <span class="scroll-text">Drop your resume</span>
+  <div class="scroll-line"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="modal-close" id="closeBtn">✕</button>
+    <div id="modalContent">
+      <div class="loading">
+        <div class="fire-ring">
+          <svg viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(200,146,42,.15)" stroke-width="2.5"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="url(#lgr)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="80 134"/>
+            <defs>
+              <linearGradient id="lgr" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#c8922a"/>
+                <stop offset="100%" stop-color="#ff6600"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="fire-center">🔥</div>
+        </div>
+        <div class="loading-text">Incinerating your resume<span class="loading-dots"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cur=document.getElementById('cur');
+const ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*.13;ry+=(my-ry)*.13;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+
+/* ── PARALLAX BG ── */
+const bg=document.getElementById('bg');
+document.addEventListener('mousemove',e=>{
+  const xp=(e.clientX/innerWidth-.5)*16;
+  const yp=(e.clientY/innerHeight-.5)*10;
+  bg.style.transform=`translate(${xp}px,${yp}px) scale(1.06)`;
+});
+
+/* ── EMBER CANVAS ── */
+const ec=document.getElementById('ec');
+const ctx=ec.getContext('2d');
+function rsz(){ec.width=innerWidth;ec.height=innerHeight}
+rsz();addEventListener('resize',rsz);
+
+const COLS=['#f5c842','#ffcc40','#e85d04','#ff8c00','#d4952a','#ff6020','#ffd060'];
+class Ember{
+  constructor(mouse=false){this.mouse=mouse;this.reset(true)}
+  reset(init=false){
+    this.x=Math.random()*ec.width*(this.mouse?.3:.6);
+    this.y=init?Math.random()*ec.height:ec.height*(0.4+Math.random()*.6);
+    this.r=this.mouse?Math.random()*3+1:Math.random()*2.5+.6;
+    this.vx=(Math.random()-.45)*.8;
+    this.vy=-(this.mouse?1.5+Math.random()*2.5:0.8+Math.random()*1.6);
+    this.life=0;this.max=this.mouse?100+Math.random()*120:160+Math.random()*200;
+    this.col=COLS[Math.floor(Math.random()*COLS.length)];
+  }
+  tick(){
+    this.x+=this.vx+Math.sin(this.life*.08)*.5;
+    this.y+=this.vy;this.life++;
+    if(this.life>this.max)this.reset();
+  }
+  draw(){
+    const a=Math.min(1,this.life/18)*(1-Math.max(0,(this.life-this.max*.7)/(this.max*.3)));
+    ctx.save();ctx.globalAlpha=a*.9;
+    ctx.fillStyle=this.col;ctx.shadowColor=this.col;ctx.shadowBlur=this.r*5;
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+}
+
+const embers=Array.from({length:55},()=>new Ember());
+const mouseEmbers=[];
+
+document.addEventListener('mousemove',e=>{
+  if(Math.random()>.55)return;
+  const em=new Ember(true);
+  em.x=e.clientX;em.y=e.clientY;em.life=0;
+  mouseEmbers.push(em);
+  if(mouseEmbers.length>90)mouseEmbers.shift();
+});
+
+(function loop(){
+  ctx.clearRect(0,0,ec.width,ec.height);
+  embers.forEach(e=>{e.tick();e.draw()});
+  mouseEmbers.forEach((e,i)=>{e.tick();e.draw();if(e.life>e.max)mouseEmbers.splice(i,1)});
+  requestAnimationFrame(loop);
+})();
+
+/* ── MODAL ── */
+const modalBg=document.getElementById('modalBg');
+const closeBtn=document.getElementById('closeBtn');
+const content=document.getElementById('modalContent');
+
+closeBtn.addEventListener('click',()=>modalBg.classList.remove('open'));
+modalBg.addEventListener('click',e=>{if(e.target===modalBg)modalBg.classList.remove('open')});
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')modalBg.classList.remove('open')});
+
+const input=document.getElementById('resumeInput');
+input.addEventListener('change',async()=>{
+  const file=input.files[0];if(!file)return;
+  modalBg.classList.add('open');
+
+  content.innerHTML=`<div class="loading">
+    <div class="fire-ring">
+      <svg viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(200,146,42,.15)" stroke-width="2.5"/>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="url(#lgr2)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="80 134"/>
+        <defs>
+          <linearGradient id="lgr2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#c8922a"/><stop offset="100%" stop-color="#ff6600"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="fire-center">🔥</div>
+    </div>
+    <div class="loading-text">Incinerating your resume<span class="loading-dots"></span></div>
+  </div>`;
+
+  let text='';
+  try{text=await file.text()}catch{text=`[File: ${file.name}, ${(file.size/1024).toFixed(1)}KB]`}
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1200,
+        messages:[{role:'user',content:`You are "Burn My Resume" — a brutally honest, darkly witty resume critic who genuinely wants people to succeed. Review the resume below with savage wit and constructive insight. Use exactly this structure with these exact emoji headers:
+
+🔥 FIRST IMPRESSIONS
+2-3 punchy, brutally honest sentences about the overall vibe.
+
+💀 WHAT'S KILLING YOUR CHANCES
+3-5 specific bullet points of critical flaws.
+
+✨ SPARKS OF GOLD
+2-3 genuine strengths — real, not sycophantic.
+
+🚀 PHOENIX MOVES
+4-5 concrete, specific action items to improve it.
+
+🏆 FIRE VERDICT
+One devastating-yet-hopeful closing sentence. End with: Fire Score: X/10 🔥
+
+Resume:
+${text}`}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content?.map(b=>b.text||'').join('')||'Something went wrong burning your resume.';
+
+    // Format: escape HTML, make emoji headers bold
+    const formatted=raw
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/(🔥[^\n]+)/g,'<strong></strong>')
+      .replace(/(💀[^\n]+)/g,'<strong></strong>')
+      .replace(/(✨[^\n]+)/g,'<strong></strong>')
+      .replace(/(🚀[^\n]+)/g,'<strong></strong>')
+      .replace(/(🏆[^\n]+)/g,'<strong></strong>');
+
+    content.innerHTML=`
+      <div class="modal-title">🔥 Verdict Is In</div>
+      <div class="modal-sub">No mercy · No fluff · Remarkably you</div>
+      <div class="modal-divider"></div>
+      <div class="modal-body">${formatted}</div>
+    `;
+  }catch(err){
+    content.innerHTML=`
+      <div class="modal-title">⚠ The Flames Faltered</div>
+      <div class="modal-sub">Something went wrong</div>
+      <div class="modal-divider"></div>
+      <div class="modal-body">Error: ${err.message}\n\nPlease try again.</div>
+    `;
+  }
+  input.value='';
+});
+</script>
 </body>
 </html>
