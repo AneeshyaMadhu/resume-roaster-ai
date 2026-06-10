@@ -25,8 +25,10 @@ SECRET_KEY = 'django-insecure-4y+yf*i6p$2nibygxujzp9^cq$15^om#bfo1e)4$0%s6c!w9)e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://uncombed-flight-mushily.ngrok-free.dev",
+]
 
 # Application definition
 
