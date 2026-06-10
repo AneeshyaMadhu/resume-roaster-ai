@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://uncombed-flight-mushily.ngrok-free.dev",
+    "https://resume-roaster-ai-production.up.railway.app",  # add your actual railway URL here
 ]
 
 # Application definition
