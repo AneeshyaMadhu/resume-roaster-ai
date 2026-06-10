@@ -1,1 +1,1 @@
-web: gunicorn resumeroaterAi.wsgi --bind 0.0.0.0:$PORT
+web: gunicorn resumeroaterAi.wsgi:application --bind 0.0.0.0:$PORT
